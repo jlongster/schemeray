@@ -10,7 +10,7 @@
   (inexact->exact (round (* n 100))))
 
 (define (real->uint8 n)
-  (inexact->exact (round (* n 255.0))))
+  (inexact->exact (round (* (saturate n) 255.0))))
 
 
 (define-record-type window :window

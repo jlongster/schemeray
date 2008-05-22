@@ -14,119 +14,42 @@
          (mostly-flonum-fixnum)
          (not safe))
 
-(define *message-port* (current-output-port))
+(include "output.scm")
+(include "math.scm")
+(include "model-parser.scm")
+(include "scene.scm")
+(include "configure.scm")
 
-(define (message . rest)
-  (for-each (lambda (s) (display s *message-port*)) rest)
-  (newline *message-port*))
+(configure
+ ;; Scene
+ (VIEWPORT (make-vec2d 8.0 6.0))
+ (WINDOW (make-vec2d 800 600))
+ (EYE (make-vec3d 0.0 0.0 -5.0))
+ (DEPTH 10000.0)
+ (DEFAULT-COLOR (make-vec3d 0.0 0.0 0.0))
 
-(define (display-strings . rest)
-  (display (apply string-append rest)))
+ ;; Ray tracing
+ (NUM-STEPS 3)
+ 
+ ;; Environment
+ (AMBIENT (make-vec3d .1 .1 .1))
+ (SCENE `(scene (plane (@ (color ,(make-vec3d .7 .7 1.0))
+                          (distance 10.0)
+                          (normal ,(make-vec3d .25 -1.0 0.0))))
+                (light (@ (color ,(make-vec3d .7 .9 .9))
+                          (position ,(make-vec3d -40.0 -15.0 60.0))
+                          (radius 1.0)))
+                #;
+                (sphere (@ (color ,(make-vec3d .4 .6 .5))
+                           (position ,(make-vec3d -15.0 0.0 90.0))
+                           (radius 20.0)))
+                #;
+                (mesh (@ (position ,(make-vec3d 23.0 0.0 50.0))
+                         (name "meshes/coptix_slim")))
+                ,@(grid-of-spheres (make-vec3d 0.0 0.0 65.0)
+                                   (make-vec3d 5.0 0.0 -0.5) 5 5 10.0))))
 
-;;; Utility stuff to help with math
 
-(define (make-vec2d x y) (f64vector x y))
-(define (vec2d-x v) (f64vector-ref v 0))
-(define (vec2d-y v) (f64vector-ref v 1))
-
-(define (make-vec3d x y z) (f64vector x y z))
-(define (vec3d-x v) (f64vector-ref v 0))
-(define (vec3d-y v) (f64vector-ref v 1))
-(define (vec3d-z v) (f64vector-ref v 2))
-
-(define (vec3d-op v1 v2 op)
-  (declare (inlining-limit 10000))
-  (make-vec3d (op (vec3d-x v1) (vec3d-x v2))
-              (op (vec3d-y v1) (vec3d-y v2))
-              (op (vec3d-z v1) (vec3d-z v2))))
-
-(define (vec3d-add v1 v2)
-  (declare (inlining-limit 10000))
-  (vec3d-op v1 v2 fl+))
-
-(define (vec3d-sub v1 v2)
-  (declare (inlining-limit 10000))
-  (vec3d-op v1 v2 fl-))
-
-(define (vec3d-component-mul v1 v2)
-  (declare (inlining-limit 10000))
-  (vec3d-op v1 v2 fl*))
-
-(define (vec3d-scalar-mul v1 f)
-  (make-vec3d (fl* (vec3d-x v1) f)
-              (fl* (vec3d-y v1) f)
-              (fl* (vec3d-z v1) f)))
-
-(define (vec3d-length v1)
-  (declare (inlining-limit 10000))
-  (flsqrt (vec3d-dot v1 v1)))
-
-(define (vec3d-unit v1)
-  (declare (inlining-limit 10000))
-  (vec3d-scalar-mul v1 (fl/ (vec3d-length v1))))
-
-(define (vec3d-dot v1 v2)
-  (fl+ (fl* (vec3d-x v1) (vec3d-x v2))
-       (fl* (vec3d-y v1) (vec3d-y v2))
-       (fl* (vec3d-z v1) (vec3d-z v2))))
-
-(define (vec3d-cross v1 v2)
-  (let ((v1-x (vec3d-x v1)) (v2-x (vec3d-x v2))
-	(v1-y (vec3d-y v1)) (v2-y (vec3d-y v2))
-	(v1-z (vec3d-z v1)) (v2-z (vec3d-z v2)))
-    (make-vec3d (fl- (fl* v1-y v2-z(vec3d-z v2))
-		     (fl* v1-z v2-y))
-		(fl- (fl* v1-z v2-x)
-		     (fl* v1-x v2-z))
-		(fl- (fl* v1-x v2-y)
-		     (fl* v1-y v2-x)))))
-
-(define (vec3d-inverse v1)
-  (make-vec3d (- (vec3d-x v1)) (- (vec3d-y v1)) (- (vec3d-z v1))))
-
-(define (saturate n)
-  (flmin 1.0 (flmax 0.0 n)))
-
-(include "obj-file-parser.scm")
-
-;;; Config constants
-(define screenDimen (make-vec2d 8.0 6.0))
-(define res (make-window 800 600))
-(define eye (make-vec3d 0.0 0.0 -5.0))
-(define depth 10000.0)
-(define backColor (make-vec3d 0.0 0.0 0.0))
-(define ambient (make-vec3d .1 .1 .1))
-(define maxsteps 3)
-
-(define coptix (delay (load-obj "meshes/coptix_slim")))
-(define box (delay (load-obj "meshes/box")))
-
-(define (generate-spheres)
-  (let ((start (make-vec3d 0.0 0.0 65.0))
-        (dX (make-vec3d -1.0 -.25 .5))
-        (dY (make-vec3d 0.0 -1.0 0.0)))
-    (let loop ((num 0)
-               (acc '()))
-      (if (fx< num 25)
-          (loop (fx+ num 1) (cons `(sphere ,(make-vec3d .8 (fl+ .2 (fl/ (fixnum->flonum num) 50.0)) .2)
-                                         ,(vec3d-add
-                                            (vec3d-add start
-                                                       (vec3d-scalar-mul
-                                                         (vec3d-scalar-mul dX 10.0)
-                                                         (fixnum->flonum (fxremainder num 5))))
-                                            (vec3d-scalar-mul
-                                              (vec3d-scalar-mul dY 10.0)
-                                              (fixnum->flonum (fxquotient num 5))))
-                                         5.0)
-                                acc))
-          acc))))
-
-(define scene `(,@(generate-spheres)
-                ;(sphere ,(make-vec3d .4 .6 .5) ,(make-vec3d -15.0 0.0 90.0) 20.0)
-                ;(sphere ,(make-vec3d .75 .95 .92) ,(make-vec3d 20.0 -20.0 65.0) 5.0)
-                (plane ,(make-vec3d .7 .7 1.0) 10.0 ,(make-vec3d .25 -1.0 0.0))
-                ;(mesh #f ,(make-vec3d 23.0 0.0 50.0) ,coptix)
-                (light ,(make-vec3d .7 .9 .9) ,(make-vec3d -40.0 -15.0 60.0) 1.0)))
 
 ;;; Types
 (define-syntax obj-dispatch
@@ -367,7 +290,7 @@
 				    (fl/ (fl* (fixnum->flonum (fx+ step 1)) 2.0)))))
               backColor)))
       (make-vec3d 0.0 0.0 0.0)))
-  
+
 (define (shoot-screen-rays proc)
   (declare (inlining-limit 10000))
   (let ((dX (fl/ (vec2d-x screenDimen) (fixnum->flonum (window-x res))))

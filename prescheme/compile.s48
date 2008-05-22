@@ -1,0 +1,9 @@
+(config '(load "s48-packages.scm"))
+
+(user '(run (prescheme-compiler
+             'schemeray
+             '("packages.scm")
+             'prescheme-init
+             "schemeray.c"
+	     '(header "#include <math.h>"))))
+

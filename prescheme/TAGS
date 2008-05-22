@@ -1,0 +1,97 @@
+
+#schemeray.c#,64
+struct vector2d 6,83
+struct vector3d 10,128
+long main(18,212
+
+a.out.dSYM/Contents/Info.plist,19
+<?xml version=1,0
+
+compile,11
+,exec 1,0
+
+packages.scm,64
+(define-structure types 2,1
+(define-structure schemeray 9,268
+
+ps-compiler.image,2106
++7CO[gs‹—£¯»ÇÓßë÷'3?KWco{‡“Ÿ«·ÃÏÛçóÿ#/;GS_kwƒ›§³¿Ë×ãïû+7CO[gs‹—£¯»ÇÓßë÷'3?KWco{‡“Ÿ«·ÃÏÛçóÿ#/;GS_kwƒ›§³¿Ë×ãïû+7CO[gs‹—£¯»ÇÓßë÷'3?KWco{‡“Ÿ«·ÃÏÛçóÿ#/;GS_kwƒ›§³¿Ë×ãïû+7CO[gs‹—£¯»ÇÓßë÷'3?KWco{‡“Ÿ«·ÃÏÛçóÿ#/;GS_kwƒ›§³¿Ë×ãïû+7CO[gs‹—£¯»ÇÓßë÷'3?KWco{‡“Ÿ«·ÃÏÛçóÿ#/;GS_kwƒ›§³¿Ë×ãïû+7CO[gs‹—£¯»ÇÓßë÷'3?KWco{‡“Ÿ«·ÃÏÛçóÿ#/;GS_kwƒ›§³¿Ë×ãïû+7CO[gs‹—£¯»ÇÓßë÷'3?KWco{‡“Ÿ«·ÃÏÛçóÿ#/;GS_kwƒ›§³¿Ë×ãïû   + 7 C O [ g s  ‹ — £ ¯ » Ç Ó ß ë ÷ !!!'!3!?!K!W!c!o!{!‡!“!Ÿ!«!·!Ã!Ï!Û!ç!ó!ÿ!""#"/";"G"S"_"k"w"ƒ""›"§"³"¿"Ë"×"ã"ï"û"###+#7#C#C#758,104290
+håh2393,497851
+
+s48-packages.scm,36
+(define-structure types-syntax 2,1
+
+schemeray.c,64
+struct vector2d 6,83
+struct vector3d 10,128
+long main(18,212
+
+schemeray.scm,887
+(define flsqrt2,1
+(define integer->float5,57
+(define float->integer8,126
+(define float->byte11,193
+(define-syntax define-entry-point14,267
+(define-syntax write-strings22,489
+(define VIEWPORT-X 30,715
+(define VIEWPORT-Y 31,739
+(define WINDOW-X 32,763
+(define WINDOW-Y 33,785
+(define EYE 34,807
+(define DEPTH 35,823
+(define DEFAULT-COLOR 36,846
+(define NUM-STEPS 39,888
+(define-record-type vector2d 54,1339
+(define-record-type vector3d 59,1448
+(define (vector3d-op 65,1582
+(define (vector3d-add 70,1778
+(define (vector3d-sub 73,1835
+(define (vector3d-component-mul 76,1892
+(define (vector3d-scalar-mul 79,1959
+(define (vector3d-length 84,2120
+(define (vector3d-unit 87,2183
+(define (vector3d-dot 90,2266
+(define (vector3d-cross 95,2433
+(define (vector3d-inverse 106,2876
+(define-field-type112,3037
+(define-field-type115,3075
+(define-entry-point (main)264,9010
+
+test.c,15
+int main(4,21
+
+type.c,397
+int type_banana 5,41
+int type_orange 6,62
+int type_apple 7,83
+struct object 9,104
+typedef struct object object;13,147
+struct banana 15,178
+typedef struct banana banana;21,251
+struct orange 23,282
+typedef struct orange orange;28,348
+struct apple 30,379
+typedef struct apple apple;36,450
+banana* make_banana(38,479
+orange* make_orange(47,688
+apple* make_apple(55,866
+int main(64,1062
+
+types-syntax.scm,62
+(define *type-field-table* 2,1
+(define (get-field-type 4,43
+
+types.scm,117
+(define-syntax define-field-type2,1
+(define-syntax define-composite-type9,171
+(define-syntax define-object38,1051
+
+util.c,39
+int quotient(4,22
+int remainder(8,82
+
+compile.s48,0
+
+a.out.dSYM/Contents/Resources/DWARF/a.out,0
+
+a.out,0
