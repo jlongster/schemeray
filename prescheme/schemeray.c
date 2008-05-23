@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "prescheme.h"
 #include <math.h>
+#include "c-util.h"
 
 struct vector2d {
   double x;
@@ -49,7 +50,7 @@ struct mesh {
 static double HflS30(double, double);
 static double Hfl_21(double, double);
 static double HflA12(double, double);
-static double vector3d_dot(struct vector3d*, struct vector3d*);
+static void wD0(double);
 static struct vector3d *vector3d_op(struct vector3d*, struct vector3d*, double(*)(double, double));
 static struct vector3d *vector3d_scalar_mul(struct vector3d*, double);
 static struct vector3d *shoot_ray(struct vector3d*, struct vector3d*, long);
@@ -59,9 +60,6 @@ static struct vector3d *eye;
 static struct vector3d *default_color;
 static struct object **scene;
 static long scene_size;
-static struct vector3d *acc;
-static struct object *fcp_obj;
-static double fcp_depth;
 
 static double HflS30(double x_3X, double y_4X)
 {
@@ -78,529 +76,662 @@ static double HflA12(double x_7X, double y_8X)
 
  {  return (x_7X + y_8X);}
 }
-static double vector3d_dot(struct vector3d *v1_9X, struct vector3d *v2_10X)
+static void wD0(double c_9X)
 {
 
- {  return ((((v1_9X->x) * (v2_10X->x)) + ((v1_9X->y) * (v2_10X->y))) + ((v1_9X->z) * (v2_10X->z)));}
+ {  write_real(c_9X);
+  return;}
 }
-static struct vector3d *vector3d_op(struct vector3d *v1_11X, struct vector3d *v2_12X, double (*op_13X)(double, double))
+static struct vector3d *vector3d_op(struct vector3d *v1_10X, struct vector3d *v2_11X, double (*op_12X)(double, double))
 {
-  struct vector3d *vector3d_17X;
-  double z_16X;
-  double x_15X;
-  double y_14X;
- {  y_14X = (*op_13X)((v1_11X->y), (v2_12X->y));
-  x_15X = (*op_13X)((v1_11X->x), (v2_12X->x));
-  z_16X = (*op_13X)((v1_11X->z), (v2_12X->z));
-  vector3d_17X = (struct vector3d*)malloc(sizeof(struct vector3d));
-  if ((NULL == vector3d_17X)) {
-    return vector3d_17X;}
+  struct vector3d *vector3d_16X;
+  double z_15X;
+  double x_14X;
+  double y_13X;
+ {  y_13X = (*op_12X)((v1_10X->y), (v2_11X->y));
+  x_14X = (*op_12X)((v1_10X->x), (v2_11X->x));
+  z_15X = (*op_12X)((v1_10X->z), (v2_11X->z));
+  vector3d_16X = (struct vector3d*)malloc(sizeof(struct vector3d));
+  if ((NULL == vector3d_16X)) {
+    return vector3d_16X;}
   else {
-    vector3d_17X->x = x_15X;
-    vector3d_17X->y = y_14X;
-    vector3d_17X->z = z_16X;
-    return vector3d_17X;}}
+    vector3d_16X->x = x_14X;
+    vector3d_16X->y = y_13X;
+    vector3d_16X->z = z_15X;
+    return vector3d_16X;}}
 }
-static struct vector3d *vector3d_scalar_mul(struct vector3d *v1_18X, double f_19X)
+static struct vector3d *vector3d_scalar_mul(struct vector3d *v1_17X, double f_18X)
 {
-  struct vector3d *vector3d_23X;
-  double v_22X;
+  struct vector3d *vector3d_22X;
   double v_21X;
   double v_20X;
- {  v_20X = v1_18X->y;
-  v_21X = v1_18X->x;
-  v_22X = v1_18X->z;
-  vector3d_23X = (struct vector3d*)malloc(sizeof(struct vector3d));
-  if ((NULL == vector3d_23X)) {
-    return vector3d_23X;}
+  double v_19X;
+ {  v_19X = v1_17X->y;
+  v_20X = v1_17X->x;
+  v_21X = v1_17X->z;
+  vector3d_22X = (struct vector3d*)malloc(sizeof(struct vector3d));
+  if ((NULL == vector3d_22X)) {
+    return vector3d_22X;}
   else {
-    vector3d_23X->x = (v_21X * f_19X);
-    vector3d_23X->y = (v_20X * f_19X);
-    vector3d_23X->z = (v_22X * f_19X);
-    return vector3d_23X;}}
+    vector3d_22X->x = (v_20X * f_18X);
+    vector3d_22X->y = (v_19X * f_18X);
+    vector3d_22X->z = (v_21X * f_18X);
+    return vector3d_22X;}}
 }
-static struct vector3d *shoot_ray(struct vector3d *orig_24X, struct vector3d *dir_25X, long step_26X)
+static struct vector3d *shoot_ray(struct vector3d *orig_23X, struct vector3d *dir_24X, long step_25X)
 {
+  struct vector3d *arg3K1;
   struct vector3d *arg3K0;
-  long arg2K0;
-  void arg1K0;
+  struct object *arg2K1;
+  long arg1K0;
+  double arg0K2;
   double arg0K0;
   double merged_arg0K1;
   double merged_arg0K0;
-  struct object *merged_arg4K0;
+  struct object *merged_arg2K0;
   struct vector3d *merged_arg3K1;
   struct vector3d *merged_arg3K0;
 
+  int vector3d_dot_return_tag;
+  double vector3d_dot0_return_value;
   int vector3d_cross_return_tag;
   struct vector3d *vector3d_cross0_return_value;
   int object_normal_return_tag;
   struct vector3d *object_normal0_return_value;
-  int same_signPD0_return_tag;
-  char same_signPD00_return_value;
-  struct vector3d *v1_27X;
-  struct vector3d *v2_28X;
-  struct object *object_29X;
-  struct vector3d *point_30X;
-  double x_31X;
-  double y_32X;
-  struct vector3d *vector3d_147X;
-  double v_146X;
-  double v2_z_145X;
-  double v1_x_144X;
-  double v2_x_143X;
-  double v1_y_142X;
-  double v2_y_141X;
-  double v1_z_140X;
-  struct vector3d *v_139X;
-  double v_138X;
-  struct vector3d *v1_137X;
-  struct sphere *sphere_136X;
-  struct vector3d *vector3d_135X;
+  int same_signPD1_return_tag;
+  char same_signPD10_return_value;
+  struct vector3d *v1_26X;
+  struct vector3d *v2_27X;
+  struct vector3d *v1_28X;
+  struct vector3d *v2_29X;
+  struct object *object_30X;
+  struct vector3d *point_31X;
+  double x_32X;
+  double y_33X;
+  struct vector3d *vector3d_151X;
+  double v_150X;
+  double v2_z_149X;
+  double v1_x_148X;
+  double v2_x_147X;
+  double v1_y_146X;
+  double v2_y_145X;
+  double v1_z_144X;
+  struct vector3d *v_143X;
+  double v_142X;
+  struct vector3d *v1_141X;
+  struct sphere *sphere_140X;
+  struct vector3d *vector3d_139X;
+  struct vector3d *v_138X;
+  double v_137X;
+  struct vector3d *v1_136X;
+  struct vector3d *v_135X;
   struct vector3d *v_134X;
-  double v_133X;
-  struct vector3d *v1_132X;
-  struct vector3d *v_131X;
+  struct triangle *triangle_133X;
+  struct plane *plane_132X;
+  char temp_131X;
   struct vector3d *v_130X;
-  struct triangle *triangle_129X;
-  struct plane *plane_128X;
-  char temp_127X;
-  struct vector3d *v_126X;
+  struct vector3d *v2_129X;
+  struct vector3d *v2_128X;
+  struct vector3d *v_127X;
+  struct vector3d *v1_126X;
   struct vector3d *v2_125X;
-  struct vector3d *v2_124X;
-  struct vector3d *v_123X;
-  struct vector3d *v1_122X;
-  struct vector3d *v2_121X;
-  struct vector3d *vector3d_120X;
-  struct vector3d *vector3d_119X;
-  char v_118X;
-  double shadow_117X;
-  double n_116X;
-  double spec_115X;
-  double rDv_114X;
-  double n_112X;
-  struct vector3d *r_111X;
-  struct vector3d *v2_110X;
-  double v_109X;
-  double nDl_108X;
-  struct vector3d *v1_106X;
-  double n_105X;
-  struct vector3d *n_104X;
-  struct vector3d *l_103X;
-  double v_102X;
-  struct vector3d *point_to_light_101X;
-  struct light *light_100X;
-  char v_99X;
-  struct object *obj_98X;
-  long i_97X;
-  double d_96X;
-  double r_95X;
-  double v_94X;
-  double d_93X;
-  double v_92X;
-  double v_91X;
-  double b_90X;
-  struct vector3d *eo_89X;
-  struct sphere *obj_88X;
-  struct vector3d *v2_87X;
-  struct vector3d *v_86X;
-  struct vector3d *v_85X;
-  struct vector3d *v2_84X;
-  struct vector3d *view_83X;
-  double v_82X;
-  struct vector3d *v1_81X;
-  struct vector3d *r_80X;
-  double v_79X;
-  struct vector3d *v1_78X;
+  struct vector3d *vector3d_124X;
+  struct vector3d *vector3d_123X;
+  char v_122X;
+  double shadow_121X;
+  double n_120X;
+  double spec_119X;
+  double rDv_118X;
+  double n_117X;
+  struct vector3d *r_116X;
+  struct vector3d *v2_115X;
+  double v_114X;
+  double nDl_113X;
+  struct vector3d *v1_112X;
+  double n_111X;
+  struct vector3d *n_110X;
+  struct vector3d *l_109X;
+  double v_108X;
+  struct vector3d *point_to_light_107X;
+  struct light *light_106X;
+  struct object *obj_105X;
+  struct vector3d *acc_104X;
+  long i_103X;
+  struct vector3d *v_102X;
+  double d_101X;
+  double r_100X;
+  double v_99X;
+  double d_98X;
+  double v_97X;
+  double v_96X;
+  double b_95X;
+  struct vector3d *eo_94X;
+  struct sphere *obj_93X;
+  struct vector3d *vector3d_92X;
+  struct vector3d *v2_91X;
+  struct vector3d *v_90X;
+  struct vector3d *v_89X;
+  struct vector3d *v2_88X;
+  struct vector3d *view_87X;
+  double v_86X;
+  struct vector3d *v1_85X;
+  struct vector3d *r_84X;
+  double v_83X;
+  struct vector3d *v1_82X;
+  struct vector3d *v2_81X;
+  double v_80X;
+  struct vector3d *n_79X;
+  struct vector3d *point_78X;
   struct vector3d *v2_77X;
-  double v_76X;
-  struct vector3d *n_75X;
-  struct vector3d *point_74X;
-  struct vector3d *v2_73X;
-  struct object *obj_72X;
-  char v_71X;
-  double v_70X;
-  struct vector3d *v_69X;
-  struct vector3d *v_68X;
+  struct vector3d *vector3d_76X;
+  char v_75X;
+  char v_74X;
+  double v_73X;
+  struct vector3d *v_72X;
+  struct vector3d *v_71X;
+  struct vector3d *v_70X;
+  char v_69X;
+  double v_68X;
   struct vector3d *v_67X;
-  char v_66X;
-  double v_65X;
-  struct vector3d *v_64X;
+  struct vector3d *v_66X;
+  struct vector3d *v_65X;
+  double val_64X;
   struct vector3d *v_63X;
   struct vector3d *v_62X;
-  double val_61X;
-  struct vector3d *v_60X;
-  struct vector3d *v_59X;
-  struct vector3d *v_58X;
-  struct vector3d *p_57X;
-  struct vector3d *v2_56X;
-  double d_55X;
-  double o_aDn_54X;
-  struct vector3d *v_53X;
-  struct vector3d *c_52X;
-  struct vector3d *b_51X;
-  struct vector3d *a_50X;
-  double vDn_49X;
-  struct vector3d *n_48X;
-  double v_47X;
-  struct vector3d *v1_46X;
-  struct vector3d *v_45X;
-  struct vector3d *v_44X;
-  struct triangle *obj_43X;
-  double dist_42X;
-  double v_41X;
-  double d_40X;
-  struct plane *obj_39X;
-  char temp_38X;
-  struct object *o_37X;
-  long i_36X;
-  struct vector3d *vector3d_35X;
-  long num_prims_34X;
-  struct object **prims_33X;
- {  if ((step_26X < 3)) {
-    prims_33X = scene;
-    num_prims_34X = scene_size;
-    fcp_obj = NULL;
-    fcp_depth = 10000.0;
-    arg2K0 = 0;
-    goto L1679;}
+  struct vector3d *v_61X;
+  struct vector3d *p_60X;
+  struct vector3d *v2_59X;
+  double d_58X;
+  double o_aDn_57X;
+  struct vector3d *v_56X;
+  struct vector3d *c_55X;
+  struct vector3d *b_54X;
+  struct vector3d *a_53X;
+  double vDn_52X;
+  struct vector3d *n_51X;
+  double v_50X;
+  struct vector3d *v1_49X;
+  struct vector3d *v_48X;
+  struct vector3d *v_47X;
+  struct triangle *obj_46X;
+  double dist_45X;
+  double v_44X;
+  double d_43X;
+  struct plane *obj_42X;
+  char temp_41X;
+  struct object *obj_40X;
+  double closest_depth_39X;
+  struct object *closest_object_38X;
+  long i_37X;
+  struct vector3d *vector3d_36X;
+  long num_prims_35X;
+  struct object **prims_34X;
+ {  if ((step_25X < 3)) {
+    prims_34X = scene;
+    num_prims_35X = scene_size;
+    arg1K0 = 0;
+    arg2K1 = NULL;
+    arg0K2 = 10000.0;
+    goto L1951;}
   else {
-    vector3d_35X = (struct vector3d*)malloc(sizeof(struct vector3d));
-    if ((NULL == vector3d_35X)) {
-      return vector3d_35X;}
+    vector3d_36X = (struct vector3d*)malloc(sizeof(struct vector3d));
+    if ((NULL == vector3d_36X)) {
+      return vector3d_36X;}
     else {
-      vector3d_35X->x = 0.0;
-      vector3d_35X->y = 0.0;
-      vector3d_35X->z = 0.0;
-      return vector3d_35X;}}}
- L1679: {
-  i_36X = arg2K0;
-  if ((i_36X < num_prims_34X)) {
-    o_37X = *(prims_33X + i_36X);
-    temp_38X = 0 == (o_37X->type);
-    if (temp_38X) {
-      goto L1618;}
+      vector3d_36X->x = 0.0;
+      vector3d_36X->y = 0.0;
+      vector3d_36X->z = 0.0;
+      return vector3d_36X;}}}
+ L1951: {
+  i_37X = arg1K0;
+  closest_object_38X = arg2K1;
+  closest_depth_39X = arg0K2;
+  if ((i_37X < num_prims_35X)) {
+    obj_40X = *(prims_34X + i_37X);
+    temp_41X = 0 == (obj_40X->type);
+    if (temp_41X) {
+      goto L1894;}
     else {
-      if ((1 == (o_37X->type))) {
-        goto L1618;}
+      if ((1 == (obj_40X->type))) {
+        goto L1894;}
       else {
-        if ((2 == (o_37X->type))) {
-          obj_39X = (struct light*)(o_37X);
-          d_40X = vector3d_dot((obj_39X->normal), dir_25X);
-          if ((0.0 == d_40X)) {
+        if ((2 == (obj_40X->type))) {
+          obj_42X = (struct light*)(obj_40X);
+          merged_arg3K0 = (obj_42X->normal);
+          merged_arg3K1 = dir_24X;
+          vector3d_dot_return_tag = 0;
+          goto vector3d_dot;
+         vector3d_dot_return_0:
+          d_43X = vector3d_dot0_return_value;
+          if ((0.0 == d_43X)) {
             arg0K0 = 10000.0;
-            goto L1684;}
+            goto L1956;}
           else {
-            v_41X = vector3d_dot((obj_39X->normal), orig_24X);
-            dist_42X = (0.0 - (v_41X + (obj_39X->distance))) / d_40X;
-            if ((0.0 < dist_42X)) {
-              arg0K0 = dist_42X;
-              goto L1684;}
+            merged_arg3K0 = (obj_42X->normal);
+            merged_arg3K1 = orig_23X;
+            vector3d_dot_return_tag = 1;
+            goto vector3d_dot;
+           vector3d_dot_return_1:
+            v_44X = vector3d_dot0_return_value;
+            dist_45X = (0.0 - (v_44X + (obj_42X->distance))) / d_43X;
+            if ((0.0 < dist_45X)) {
+              arg0K0 = dist_45X;
+              goto L1956;}
             else {
               arg0K0 = 10000.0;
-              goto L1684;}}}
+              goto L1956;}}}
         else {
-          if ((3 == (o_37X->type))) {
-            obj_43X = (struct light*)(o_37X);
-            v_44X = vector3d_op((obj_43X->vertex2), (obj_43X->vertex1), Hfl_21);
-            v_45X = vector3d_op((obj_43X->vertex3), (obj_43X->vertex1), Hfl_21);
-            merged_arg3K0 = v_44X;
-            merged_arg3K1 = v_45X;
+          if ((3 == (obj_40X->type))) {
+            obj_46X = (struct light*)(obj_40X);
+            v_47X = vector3d_op((obj_46X->vertex2), (obj_46X->vertex1), Hfl_21);
+            v_48X = vector3d_op((obj_46X->vertex3), (obj_46X->vertex1), Hfl_21);
+            merged_arg3K0 = v_47X;
+            merged_arg3K1 = v_48X;
             vector3d_cross_return_tag = 0;
             goto vector3d_cross;
            vector3d_cross_return_0:
-            v1_46X = vector3d_cross0_return_value;
-            v_47X = vector3d_dot(v1_46X, v1_46X);sqrt(v_47X);
-            n_48X = vector3d_scalar_mul(v1_46X, 1.0);
-            vDn_49X = vector3d_dot(dir_25X, n_48X);
-            if ((vDn_49X < 0.0)) {
-              a_50X = obj_43X->vertex1;
-              b_51X = obj_43X->vertex2;
-              c_52X = obj_43X->vertex3;
-              v_53X = vector3d_op(orig_24X, a_50X, Hfl_21);
-              o_aDn_54X = vector3d_dot(v_53X, n_48X);
-              d_55X = 0.0 - (o_aDn_54X / vDn_49X);
-              v2_56X = vector3d_scalar_mul(dir_25X, d_55X);
-              p_57X = vector3d_op(orig_24X, v2_56X, HflA12);
-              v_58X = vector3d_op(b_51X, a_50X, Hfl_21);
-              v_59X = vector3d_op(p_57X, a_50X, Hfl_21);
-              merged_arg3K0 = v_58X;
-              merged_arg3K1 = v_59X;
+            v1_49X = vector3d_cross0_return_value;
+            merged_arg3K0 = v1_49X;
+            merged_arg3K1 = v1_49X;
+            vector3d_dot_return_tag = 2;
+            goto vector3d_dot;
+           vector3d_dot_return_2:
+            v_50X = vector3d_dot0_return_value;sqrt(v_50X);
+            n_51X = vector3d_scalar_mul(v1_49X, 1.0);
+            merged_arg3K0 = dir_24X;
+            merged_arg3K1 = n_51X;
+            vector3d_dot_return_tag = 3;
+            goto vector3d_dot;
+           vector3d_dot_return_3:
+            vDn_52X = vector3d_dot0_return_value;
+            if ((vDn_52X < 0.0)) {
+              a_53X = obj_46X->vertex1;
+              b_54X = obj_46X->vertex2;
+              c_55X = obj_46X->vertex3;
+              v_56X = vector3d_op(orig_23X, a_53X, Hfl_21);
+              merged_arg3K0 = v_56X;
+              merged_arg3K1 = n_51X;
+              vector3d_dot_return_tag = 4;
+              goto vector3d_dot;
+             vector3d_dot_return_4:
+              o_aDn_57X = vector3d_dot0_return_value;
+              d_58X = 0.0 - (o_aDn_57X / vDn_52X);
+              v2_59X = vector3d_scalar_mul(dir_24X, d_58X);
+              p_60X = vector3d_op(orig_23X, v2_59X, HflA12);
+              v_61X = vector3d_op(b_54X, a_53X, Hfl_21);
+              v_62X = vector3d_op(p_60X, a_53X, Hfl_21);
+              merged_arg3K0 = v_61X;
+              merged_arg3K1 = v_62X;
               vector3d_cross_return_tag = 1;
               goto vector3d_cross;
              vector3d_cross_return_1:
-              v_60X = vector3d_cross0_return_value;
-              val_61X = vector3d_dot(v_60X, n_48X);
-              if ((d_55X < 0.0)) {
+              v_63X = vector3d_cross0_return_value;
+              merged_arg3K0 = v_63X;
+              merged_arg3K1 = n_51X;
+              vector3d_dot_return_tag = 5;
+              goto vector3d_dot;
+             vector3d_dot_return_5:
+              val_64X = vector3d_dot0_return_value;
+              if ((d_58X < 0.0)) {
                 arg0K0 = 10000.0;
-                goto L1684;}
+                goto L1956;}
               else {
-                v_62X = vector3d_op(c_52X, b_51X, Hfl_21);
-                v_63X = vector3d_op(p_57X, b_51X, Hfl_21);
-                merged_arg3K0 = v_62X;
-                merged_arg3K1 = v_63X;
+                v_65X = vector3d_op(c_55X, b_54X, Hfl_21);
+                v_66X = vector3d_op(p_60X, b_54X, Hfl_21);
+                merged_arg3K0 = v_65X;
+                merged_arg3K1 = v_66X;
                 vector3d_cross_return_tag = 2;
                 goto vector3d_cross;
                vector3d_cross_return_2:
-                v_64X = vector3d_cross0_return_value;
-                v_65X = vector3d_dot(v_64X, n_48X);
-                merged_arg0K0 = val_61X;
-                merged_arg0K1 = v_65X;
-                same_signPD0_return_tag = 0;
-                goto same_signPD0;
-               same_signPD0_return_0:
-                v_66X = same_signPD00_return_value;
-                if (v_66X) {
-                  v_67X = vector3d_op(a_50X, c_52X, Hfl_21);
-                  v_68X = vector3d_op(p_57X, c_52X, Hfl_21);
-                  merged_arg3K0 = v_67X;
-                  merged_arg3K1 = v_68X;
+                v_67X = vector3d_cross0_return_value;
+                merged_arg3K0 = v_67X;
+                merged_arg3K1 = n_51X;
+                vector3d_dot_return_tag = 6;
+                goto vector3d_dot;
+               vector3d_dot_return_6:
+                v_68X = vector3d_dot0_return_value;
+                merged_arg0K0 = val_64X;
+                merged_arg0K1 = v_68X;
+                same_signPD1_return_tag = 0;
+                goto same_signPD1;
+               same_signPD1_return_0:
+                v_69X = same_signPD10_return_value;
+                if (v_69X) {
+                  v_70X = vector3d_op(a_53X, c_55X, Hfl_21);
+                  v_71X = vector3d_op(p_60X, c_55X, Hfl_21);
+                  merged_arg3K0 = v_70X;
+                  merged_arg3K1 = v_71X;
                   vector3d_cross_return_tag = 3;
                   goto vector3d_cross;
                  vector3d_cross_return_3:
-                  v_69X = vector3d_cross0_return_value;
-                  v_70X = vector3d_dot(v_69X, n_48X);
-                  merged_arg0K0 = val_61X;
-                  merged_arg0K1 = v_70X;
-                  same_signPD0_return_tag = 1;
-                  goto same_signPD0;
-                 same_signPD0_return_1:
-                  v_71X = same_signPD00_return_value;
-                  if (v_71X) {
-                    arg0K0 = d_55X;
-                    goto L1684;}
+                  v_72X = vector3d_cross0_return_value;
+                  merged_arg3K0 = v_72X;
+                  merged_arg3K1 = n_51X;
+                  vector3d_dot_return_tag = 7;
+                  goto vector3d_dot;
+                 vector3d_dot_return_7:
+                  v_73X = vector3d_dot0_return_value;
+                  merged_arg0K0 = val_64X;
+                  merged_arg0K1 = v_73X;
+                  same_signPD1_return_tag = 1;
+                  goto same_signPD1;
+                 same_signPD1_return_1:
+                  v_74X = same_signPD10_return_value;
+                  if (v_74X) {
+                    arg0K0 = d_58X;
+                    goto L1956;}
                   else {
                     arg0K0 = 10000.0;
-                    goto L1684;}}
+                    goto L1956;}}
                 else {
                   arg0K0 = 10000.0;
-                  goto L1684;}}}
+                  goto L1956;}}}
             else {
               arg0K0 = 10000.0;
-              goto L1684;}}
+              goto L1956;}}
           else {
             arg0K0 = 10000.0;
-            goto L1684;}}}}}
+            goto L1956;}}}}}
   else {
-    obj_72X = fcp_obj;
-    v2_73X = vector3d_scalar_mul(dir_25X, (fcp_depth));
-    point_74X = vector3d_op(orig_24X, v2_73X, HflA12);
-    merged_arg4K0 = obj_72X;
-    merged_arg3K1 = point_74X;
-    object_normal_return_tag = 0;
-    goto object_normal;
-   object_normal_return_0:
-    n_75X = object_normal0_return_value;
-    v_76X = vector3d_dot(dir_25X, n_75X);
-    v2_77X = vector3d_scalar_mul(n_75X, (2.0 * v_76X));
-    v1_78X = vector3d_op(dir_25X, v2_77X, Hfl_21);
-    v_79X = vector3d_dot(v1_78X, v1_78X);sqrt(v_79X);
-    r_80X = vector3d_scalar_mul(v1_78X, 1.0);
-    v1_81X = vector3d_op(point_74X, (eye), Hfl_21);
-    v_82X = vector3d_dot(v1_81X, v1_81X);sqrt(v_82X);
-    view_83X = vector3d_scalar_mul(v1_81X, 1.0);
-    v2_84X = vector3d_scalar_mul(r_80X, 1e-4);
-    v_85X = vector3d_op(point_74X, v2_84X, HflA12);
-    v_86X = shoot_ray(v_85X, r_80X, (1 + step_26X));(float)((1 + step_26X));
-    v2_87X = vector3d_scalar_mul(v_86X, 1.0);
-    if ((0 == (obj_72X->type))) {
-      return vector3d_op((obj_72X->color), v2_87X, HflA12);}
+    v_75X = ISNULL(closest_object_38X);
+    if (v_75X) {
+      vector3d_76X = (struct vector3d*)malloc(sizeof(struct vector3d));
+      if ((NULL == vector3d_76X)) {
+        return vector3d_76X;}
+      else {
+        vector3d_76X->x = 0.0;
+        vector3d_76X->y = 0.0;
+        vector3d_76X->z = 0.0;
+        return vector3d_76X;}}
     else {
-      arg2K0 = 0;
-      goto L1354;}}}
- L1618: {
-  obj_88X = (struct light*)(o_37X);
-  eo_89X = vector3d_op(orig_24X, (obj_88X->position), Hfl_21);
-  b_90X = vector3d_dot(eo_89X, dir_25X);
-  v_91X = pow((obj_88X->radius), 2.0);
-  v_92X = vector3d_dot(eo_89X, eo_89X);
-  d_93X = (b_90X * b_90X) - (v_92X - v_91X);
-  if ((0.0 < d_93X)) {
-    v_94X = sqrt(d_93X);
-    r_95X = (0.0 - b_90X) - v_94X;
-    if ((0.0 < r_95X)) {
-      arg0K0 = r_95X;
-      goto L1684;}
+      v2_77X = vector3d_scalar_mul(dir_24X, closest_depth_39X);
+      point_78X = vector3d_op(orig_23X, v2_77X, HflA12);
+      merged_arg2K0 = closest_object_38X;
+      merged_arg3K1 = point_78X;
+      object_normal_return_tag = 0;
+      goto object_normal;
+     object_normal_return_0:
+      n_79X = object_normal0_return_value;
+      merged_arg3K0 = dir_24X;
+      merged_arg3K1 = n_79X;
+      vector3d_dot_return_tag = 8;
+      goto vector3d_dot;
+     vector3d_dot_return_8:
+      v_80X = vector3d_dot0_return_value;
+      v2_81X = vector3d_scalar_mul(n_79X, (2.0 * v_80X));
+      v1_82X = vector3d_op(dir_24X, v2_81X, Hfl_21);
+      merged_arg3K0 = v1_82X;
+      merged_arg3K1 = v1_82X;
+      vector3d_dot_return_tag = 9;
+      goto vector3d_dot;
+     vector3d_dot_return_9:
+      v_83X = vector3d_dot0_return_value;sqrt(v_83X);
+      r_84X = vector3d_scalar_mul(v1_82X, 1.0);
+      v1_85X = vector3d_op(point_78X, (eye), Hfl_21);
+      merged_arg3K0 = v1_85X;
+      merged_arg3K1 = v1_85X;
+      vector3d_dot_return_tag = 10;
+      goto vector3d_dot;
+     vector3d_dot_return_10:
+      v_86X = vector3d_dot0_return_value;sqrt(v_86X);
+      view_87X = vector3d_scalar_mul(v1_85X, 1.0);
+      v2_88X = vector3d_scalar_mul(r_84X, 1e-4);
+      v_89X = vector3d_op(point_78X, v2_88X, HflA12);
+      v_90X = shoot_ray(v_89X, r_84X, (1 + step_25X));(float)((1 + step_25X));
+      v2_91X = vector3d_scalar_mul(v_90X, 1.0);
+      if ((0 == (closest_object_38X->type))) {
+        return vector3d_op((closest_object_38X->color), v2_91X, HflA12);}
+      else {
+        vector3d_92X = (struct vector3d*)malloc(sizeof(struct vector3d));
+        if ((NULL == vector3d_92X)) {
+          arg3K0 = vector3d_92X;
+          goto L1711;}
+        else {
+          vector3d_92X->x = 0.0;
+          vector3d_92X->y = 0.0;
+          vector3d_92X->z = 0.0;
+          arg3K0 = vector3d_92X;
+          goto L1711;}}}}}
+ L1894: {
+  obj_93X = (struct light*)(obj_40X);
+  eo_94X = vector3d_op(orig_23X, (obj_93X->position), Hfl_21);
+  merged_arg3K0 = eo_94X;
+  merged_arg3K1 = dir_24X;
+  vector3d_dot_return_tag = 11;
+  goto vector3d_dot;
+ vector3d_dot_return_11:
+  b_95X = vector3d_dot0_return_value;
+  v_96X = pow((obj_93X->radius), 2.0);
+  merged_arg3K0 = eo_94X;
+  merged_arg3K1 = eo_94X;
+  vector3d_dot_return_tag = 12;
+  goto vector3d_dot;
+ vector3d_dot_return_12:
+  v_97X = vector3d_dot0_return_value;
+  d_98X = (b_95X * b_95X) - (v_97X - v_96X);
+  if ((0.0 < d_98X)) {
+    v_99X = sqrt(d_98X);
+    r_100X = (0.0 - b_95X) - v_99X;
+    if ((0.0 < r_100X)) {
+      arg0K0 = r_100X;
+      goto L1956;}
     else {
       arg0K0 = 10000.0;
-      goto L1684;}}
+      goto L1956;}}
   else {
     arg0K0 = 10000.0;
-    goto L1684;}}
- L1684: {
-  d_96X = arg0K0;
-  if ((d_96X < 10000.0)) {
-    fcp_obj = o_37X;
-    fcp_depth = d_96X;
-    goto L1696;}
+    goto L1956;}}
+ L1956: {
+  d_101X = arg0K0;
+  if ((d_101X < closest_depth_39X)) {
+    arg1K0 = (1 + i_37X);
+    arg2K1 = obj_40X;
+    arg0K2 = d_101X;
+    goto L1951;}
   else {
-    goto L1696;}}
- L1354: {
-  i_97X = arg2K0;
-  if ((i_97X < (scene_size))) {
-    obj_98X = *((scene) + i_97X);
-    v_99X = 0 == (obj_98X->type);
-    if (v_99X) {
-      light_100X = (struct light*)(obj_98X);
-      point_to_light_101X = vector3d_op((light_100X->position), point_74X, Hfl_21);
-      v_102X = vector3d_dot(point_to_light_101X, point_to_light_101X);sqrt(v_102X);
-      l_103X = vector3d_scalar_mul(point_to_light_101X, 1.0);
-      merged_arg4K0 = obj_72X;
-      merged_arg3K1 = point_74X;
+    arg1K0 = (1 + i_37X);
+    arg2K1 = closest_object_38X;
+    arg0K2 = closest_depth_39X;
+    goto L1951;}}
+ L1711: {
+  v_102X = arg3K0;
+  arg1K0 = 0;
+  arg3K1 = v_102X;
+  goto L1620;}
+ L1620: {
+  i_103X = arg1K0;
+  acc_104X = arg3K1;
+  if ((i_103X < (scene_size))) {
+    obj_105X = *((scene) + i_103X);
+    if ((0 == (obj_105X->type))) {
+      light_106X = (struct light*)(obj_105X);
+      point_to_light_107X = vector3d_op((light_106X->position), point_78X, Hfl_21);
+      merged_arg3K0 = point_to_light_107X;
+      merged_arg3K1 = point_to_light_107X;
+      vector3d_dot_return_tag = 13;
+      goto vector3d_dot;
+     vector3d_dot_return_13:
+      v_108X = vector3d_dot0_return_value;sqrt(v_108X);
+      l_109X = vector3d_scalar_mul(point_to_light_107X, 1.0);
+      merged_arg2K0 = closest_object_38X;
+      merged_arg3K1 = point_78X;
       object_normal_return_tag = 1;
       goto object_normal;
      object_normal_return_1:
-      n_104X = object_normal0_return_value;
-      n_105X = vector3d_dot(n_104X, l_103X);
-      if ((n_105X < 0.0)) {
+      n_110X = object_normal0_return_value;
+      merged_arg3K0 = n_110X;
+      merged_arg3K1 = l_109X;
+      vector3d_dot_return_tag = 14;
+      goto vector3d_dot;
+     vector3d_dot_return_14:
+      n_111X = vector3d_dot0_return_value;
+      if ((n_111X < 0.0)) {
         arg0K0 = 0.0;
-        goto L1384;}
+        goto L1648;}
       else {
-        if ((1.0 < n_105X)) {
+        if ((1.0 < n_111X)) {
           arg0K0 = 1.0;
-          goto L1384;}
+          goto L1648;}
         else {
-          arg0K0 = n_105X;
-          goto L1384;}}}
+          arg0K0 = n_111X;
+          goto L1648;}}}
     else {
-      goto L1448;}}
+      arg1K0 = (1 + i_103X);
+      arg3K1 = acc_104X;
+      goto L1620;}}
   else {
-    if ((2 == (obj_72X->type))) {
-      return vector3d_op((acc), v2_87X, HflA12);}
+    if ((2 == (closest_object_38X->type))) {
+      return vector3d_op(acc_104X, v2_91X, HflA12);}
     else {
-      v1_106X = vector3d_op((ambient), (acc), HflA12);
-      return vector3d_op(v1_106X, v2_87X, HflA12);}}}
- L1696: {
-  v_107X = arg1K0;(*v_107X)();
-  arg2K0 = (1 + i_36X);
-  goto L1679;}
- L1384: {
-  nDl_108X = arg0K0;
-  v_109X = vector3d_dot(n_104X, l_103X);
-  v2_110X = vector3d_scalar_mul(n_104X, (2.0 * v_109X));
-  r_111X = vector3d_op(l_103X, v2_110X, Hfl_21);
-  n_112X = vector3d_dot(r_111X, view_83X);
-  if ((n_112X < 0.0)) {
+      v1_112X = vector3d_op((ambient), acc_104X, HflA12);
+      return vector3d_op(v1_112X, v2_91X, HflA12);}}}
+ L1648: {
+  nDl_113X = arg0K0;
+  merged_arg3K0 = n_110X;
+  merged_arg3K1 = l_109X;
+  vector3d_dot_return_tag = 15;
+  goto vector3d_dot;
+ vector3d_dot_return_15:
+  v_114X = vector3d_dot0_return_value;
+  v2_115X = vector3d_scalar_mul(n_110X, (2.0 * v_114X));
+  r_116X = vector3d_op(l_109X, v2_115X, Hfl_21);
+  merged_arg3K0 = r_116X;
+  merged_arg3K1 = view_87X;
+  vector3d_dot_return_tag = 16;
+  goto vector3d_dot;
+ vector3d_dot_return_16:
+  n_117X = vector3d_dot0_return_value;
+  if ((n_117X < 0.0)) {
     arg0K0 = 0.0;
-    goto L1398;}
+    goto L1662;}
   else {
-    if ((1.0 < n_112X)) {
+    if ((1.0 < n_117X)) {
       arg0K0 = 1.0;
-      goto L1398;}
+      goto L1662;}
     else {
-      arg0K0 = n_112X;
-      goto L1398;}}}
- L1448: {
-  v_113X = arg1K0;(*v_113X)();
-  arg2K0 = (1 + i_97X);
-  goto L1354;}
- L1398: {
-  rDv_114X = arg0K0;
-  spec_115X = pow(rDv_114X, 30.0);
-  n_116X = 4.0 * nDl_108X;
-  if ((n_116X < 0.0)) {
+      arg0K0 = n_117X;
+      goto L1662;}}}
+ L1662: {
+  rDv_118X = arg0K0;
+  spec_119X = pow(rDv_118X, 30.0);
+  n_120X = 4.0 * nDl_113X;
+  if ((n_120X < 0.0)) {
     arg0K0 = 0.0;
-    goto L1408;}
+    goto L1672;}
   else {
-    if ((1.0 < n_116X)) {
+    if ((1.0 < n_120X)) {
       arg0K0 = 1.0;
-      goto L1408;}
+      goto L1672;}
     else {
-      arg0K0 = n_116X;
-      goto L1408;}}}
- L1408: {
-  shadow_117X = arg0K0;
-  if ((0.0 < nDl_108X)) {
-    v_118X = 2 == (obj_72X->type);
-    if (v_118X) {
-      vector3d_119X = (struct vector3d*)malloc(sizeof(struct vector3d));
-      if ((NULL == vector3d_119X)) {
-        arg3K0 = vector3d_119X;
-        goto L1433;}
+      arg0K0 = n_120X;
+      goto L1672;}}}
+ L1672: {
+  shadow_121X = arg0K0;
+  if ((0.0 < nDl_113X)) {
+    v_122X = 2 == (closest_object_38X->type);
+    if (v_122X) {
+      vector3d_123X = (struct vector3d*)malloc(sizeof(struct vector3d));
+      if ((NULL == vector3d_123X)) {
+        arg3K0 = vector3d_123X;
+        goto L1695;}
       else {
-        vector3d_119X->x = 0.0;
-        vector3d_119X->y = 0.0;
-        vector3d_119X->z = 0.0;
-        arg3K0 = vector3d_119X;
-        goto L1433;}}
+        vector3d_123X->x = 0.0;
+        vector3d_123X->y = 0.0;
+        vector3d_123X->z = 0.0;
+        arg3K0 = vector3d_123X;
+        goto L1695;}}
     else {
-      vector3d_120X = (struct vector3d*)malloc(sizeof(struct vector3d));
-      if ((NULL == vector3d_120X)) {
-        arg3K0 = vector3d_120X;
-        goto L1433;}
+      vector3d_124X = (struct vector3d*)malloc(sizeof(struct vector3d));
+      if ((NULL == vector3d_124X)) {
+        arg3K0 = vector3d_124X;
+        goto L1695;}
       else {
-        vector3d_120X->x = spec_115X;
-        vector3d_120X->y = spec_115X;
-        vector3d_120X->z = spec_115X;
-        arg3K0 = vector3d_120X;
-        goto L1433;}}}
+        vector3d_124X->x = spec_119X;
+        vector3d_124X->y = spec_119X;
+        vector3d_124X->z = spec_119X;
+        arg3K0 = vector3d_124X;
+        goto L1695;}}}
   else {
-    goto L1448;}}
- L1433: {
-  v2_121X = arg3K0;
-  v1_122X = vector3d_scalar_mul((obj_72X->color), nDl_108X);
-  v_123X = vector3d_op(v1_122X, v2_121X, HflA12);
-  v2_124X = vector3d_scalar_mul(v_123X, shadow_117X);
-  v2_125X = vector3d_op((obj_98X->color), v2_124X, HflS30);
-  v_126X = vector3d_op((acc), v2_125X, HflA12);
-  acc = v_126X;
-  goto L1448;}
- same_signPD0: {
-  x_31X = merged_arg0K0;
-  y_32X = merged_arg0K1;{
-  same_signPD00_return_value = ((x_31X < 0.0) == (y_32X < 0.0));
-  goto same_signPD0_return;}
- same_signPD0_return:
-  switch (same_signPD0_return_tag) {
-  case 0: goto same_signPD0_return_0;
-  default: goto same_signPD0_return_1;
+    arg1K0 = (1 + i_103X);
+    arg3K1 = acc_104X;
+    goto L1620;}}
+ L1695: {
+  v2_125X = arg3K0;
+  v1_126X = vector3d_scalar_mul((closest_object_38X->color), nDl_113X);
+  v_127X = vector3d_op(v1_126X, v2_125X, HflA12);
+  v2_128X = vector3d_scalar_mul(v_127X, shadow_121X);
+  v2_129X = vector3d_op((obj_105X->color), v2_128X, HflS30);
+  v_130X = vector3d_op(acc_104X, v2_129X, HflA12);
+  arg1K0 = (1 + i_103X);
+  arg3K1 = v_130X;
+  goto L1620;}
+ same_signPD1: {
+  x_32X = merged_arg0K0;
+  y_33X = merged_arg0K1;{
+  same_signPD10_return_value = ((x_32X < 0.0) == (y_33X < 0.0));
+  goto same_signPD1_return;}
+ same_signPD1_return:
+  switch (same_signPD1_return_tag) {
+  case 0: goto same_signPD1_return_0;
+  default: goto same_signPD1_return_1;
   }}
 
  object_normal: {
-  object_29X = merged_arg4K0;
-  point_30X = merged_arg3K1;{
-  temp_127X = 0 == (object_29X->type);
-  if (temp_127X) {
-    goto L1024;}
+  object_30X = merged_arg2K0;
+  point_31X = merged_arg3K1;{
+  temp_131X = 0 == (object_30X->type);
+  if (temp_131X) {
+    goto L1289;}
   else {
-    if ((1 == (object_29X->type))) {
-      goto L1024;}
+    if ((1 == (object_30X->type))) {
+      goto L1289;}
     else {
-      if ((2 == (object_29X->type))) {
-        plane_128X = (struct light*)(object_29X);
-        object_normal0_return_value = (plane_128X->normal);
+      if ((2 == (object_30X->type))) {
+        plane_132X = (struct light*)(object_30X);
+        object_normal0_return_value = (plane_132X->normal);
         goto object_normal_return;}
       else {
-        if ((3 == (object_29X->type))) {
-          triangle_129X = (struct light*)(object_29X);
-          v_130X = vector3d_op((triangle_129X->vertex2), (triangle_129X->vertex1), Hfl_21);
-          v_131X = vector3d_op((triangle_129X->vertex3), (triangle_129X->vertex1), Hfl_21);
-          merged_arg3K0 = v_130X;
-          merged_arg3K1 = v_131X;
+        if ((3 == (object_30X->type))) {
+          triangle_133X = (struct light*)(object_30X);
+          v_134X = vector3d_op((triangle_133X->vertex2), (triangle_133X->vertex1), Hfl_21);
+          v_135X = vector3d_op((triangle_133X->vertex3), (triangle_133X->vertex1), Hfl_21);
+          merged_arg3K0 = v_134X;
+          merged_arg3K1 = v_135X;
           vector3d_cross_return_tag = 4;
           goto vector3d_cross;
          vector3d_cross_return_4:
-          v1_132X = vector3d_cross0_return_value;
-          v_133X = vector3d_dot(v1_132X, v1_132X);sqrt(v_133X);
-          v_134X = vector3d_scalar_mul(v1_132X, 1.0);
-          object_normal0_return_value = v_134X;
+          v1_136X = vector3d_cross0_return_value;
+          merged_arg3K0 = v1_136X;
+          merged_arg3K1 = v1_136X;
+          vector3d_dot_return_tag = 17;
+          goto vector3d_dot;
+         vector3d_dot_return_17:
+          v_137X = vector3d_dot0_return_value;sqrt(v_137X);
+          v_138X = vector3d_scalar_mul(v1_136X, 1.0);
+          object_normal0_return_value = v_138X;
           goto object_normal_return;}
         else {
-          vector3d_135X = (struct vector3d*)malloc(sizeof(struct vector3d));
-          if ((NULL == vector3d_135X)) {
-            object_normal0_return_value = vector3d_135X;
+          vector3d_139X = (struct vector3d*)malloc(sizeof(struct vector3d));
+          if ((NULL == vector3d_139X)) {
+            object_normal0_return_value = vector3d_139X;
             goto object_normal_return;}
           else {
-            vector3d_135X->x = 0.0;
-            vector3d_135X->y = 1.0;
-            vector3d_135X->z = 0.0;
-            object_normal0_return_value = vector3d_135X;
+            vector3d_139X->x = 0.0;
+            vector3d_139X->y = 1.0;
+            vector3d_139X->z = 0.0;
+            object_normal0_return_value = vector3d_139X;
             goto object_normal_return;}}}}}}
- L1024: {
-  sphere_136X = (struct light*)(object_29X);
-  v1_137X = vector3d_op(point_30X, (sphere_136X->position), Hfl_21);
-  v_138X = vector3d_dot(v1_137X, v1_137X);sqrt(v_138X);
-  v_139X = vector3d_scalar_mul(v1_137X, 1.0);
-  object_normal0_return_value = v_139X;
+ L1289: {
+  sphere_140X = (struct light*)(object_30X);
+  v1_141X = vector3d_op(point_31X, (sphere_140X->position), Hfl_21);
+  merged_arg3K0 = v1_141X;
+  merged_arg3K1 = v1_141X;
+  vector3d_dot_return_tag = 18;
+  goto vector3d_dot;
+ vector3d_dot_return_18:
+  v_142X = vector3d_dot0_return_value;sqrt(v_142X);
+  v_143X = vector3d_scalar_mul(v1_141X, 1.0);
+  object_normal0_return_value = v_143X;
   goto object_normal_return;}
  object_normal_return:
   switch (object_normal_return_tag) {
@@ -609,24 +740,24 @@ static struct vector3d *shoot_ray(struct vector3d *orig_24X, struct vector3d *di
   }}
 
  vector3d_cross: {
-  v1_27X = merged_arg3K0;
-  v2_28X = merged_arg3K1;{
-  v1_z_140X = v1_27X->z;
-  v2_y_141X = v2_28X->y;
-  v1_y_142X = v1_27X->y;
-  v2_x_143X = v2_28X->x;
-  v1_x_144X = v1_27X->x;
-  v2_z_145X = v2_28X->z;
-  v_146X = v2_28X->z;
-  vector3d_147X = (struct vector3d*)malloc(sizeof(struct vector3d));
-  if ((NULL == vector3d_147X)) {
-    vector3d_cross0_return_value = vector3d_147X;
+  v1_28X = merged_arg3K0;
+  v2_29X = merged_arg3K1;{
+  v1_z_144X = v1_28X->z;
+  v2_y_145X = v2_29X->y;
+  v1_y_146X = v1_28X->y;
+  v2_x_147X = v2_29X->x;
+  v1_x_148X = v1_28X->x;
+  v2_z_149X = v2_29X->z;
+  v_150X = v2_29X->z;
+  vector3d_151X = (struct vector3d*)malloc(sizeof(struct vector3d));
+  if ((NULL == vector3d_151X)) {
+    vector3d_cross0_return_value = vector3d_151X;
     goto vector3d_cross_return;}
   else {
-    vector3d_147X->x = (((v1_y_142X * v2_z_145X) * v_146X) - (v1_z_140X * v2_y_141X));
-    vector3d_147X->y = ((v1_z_140X * v2_x_143X) - (v1_x_144X * v2_z_145X));
-    vector3d_147X->z = ((v1_x_144X * v2_y_141X) - (v1_y_142X * v2_x_143X));
-    vector3d_cross0_return_value = vector3d_147X;
+    vector3d_151X->x = (((v1_y_146X * v2_z_149X) * v_150X) - (v1_z_144X * v2_y_145X));
+    vector3d_151X->y = ((v1_z_144X * v2_x_147X) - (v1_x_148X * v2_z_149X));
+    vector3d_151X->z = ((v1_x_148X * v2_y_145X) - (v1_y_146X * v2_x_147X));
+    vector3d_cross0_return_value = vector3d_151X;
     goto vector3d_cross_return;}}
  vector3d_cross_return:
   switch (vector3d_cross_return_tag) {
@@ -637,266 +768,257 @@ static struct vector3d *shoot_ray(struct vector3d *orig_24X, struct vector3d *di
   default: goto vector3d_cross_return_4;
   }}
 
-}
-long main(long argc_148X, char **argv_149X)
-{
-  struct object *arg4K0;
-  long arg2K0;
-  struct vector3d *arg3K0;
-  double merged_arg0K0;
+ vector3d_dot: {
+  v1_26X = merged_arg3K0;
+  v2_27X = merged_arg3K1;{
+  vector3d_dot0_return_value = ((((v1_26X->x) * (v2_27X->x)) + ((v1_26X->y) * (v2_27X->y))) + ((v1_26X->z) * (v2_27X->z)));
+  goto vector3d_dot_return;}
+ vector3d_dot_return:
+  switch (vector3d_dot_return_tag) {
+  case 0: goto vector3d_dot_return_0;
+  case 1: goto vector3d_dot_return_1;
+  case 2: goto vector3d_dot_return_2;
+  case 3: goto vector3d_dot_return_3;
+  case 4: goto vector3d_dot_return_4;
+  case 5: goto vector3d_dot_return_5;
+  case 6: goto vector3d_dot_return_6;
+  case 7: goto vector3d_dot_return_7;
+  case 8: goto vector3d_dot_return_8;
+  case 9: goto vector3d_dot_return_9;
+  case 10: goto vector3d_dot_return_10;
+  case 11: goto vector3d_dot_return_11;
+  case 12: goto vector3d_dot_return_12;
+  case 13: goto vector3d_dot_return_13;
+  case 14: goto vector3d_dot_return_14;
+  case 15: goto vector3d_dot_return_15;
+  case 16: goto vector3d_dot_return_16;
+  case 17: goto vector3d_dot_return_17;
+  default: goto vector3d_dot_return_18;
+  }}
 
-  int wD1_return_tag;
-  long wD10_return_value;
-  double c_150X;
-  long v_194X;
-  struct vector3d *color_193X;
-  struct vector3d *view_192X;
-  double v_191X;
-  struct vector3d *v1_190X;
-  struct vector3d *v1_189X;
-  struct vector3d *point_188X;
-  struct vector3d *vector3d_187X;
-  double v_186X;
-  double v_185X;
-  long n_184X;
-  double dy_183X;
-  double dx_182X;
-  double v_181X;
-  double v_180X;
-  struct vector3d *corner_179X;
-  struct vector3d *vector3d_178X;
-  long v_177X;
-  FILE * port_176X;
-  struct object *v_175X;
-  struct object *v_174X;
-  struct object *v_173X;
-  struct light *light_172X;
-  struct vector3d *color_171X;
-  struct vector3d *vector3d_170X;
-  struct vector3d *position_169X;
-  struct vector3d *vector3d_168X;
-  struct object *v_167X;
-  struct object *v_166X;
-  struct object *v_165X;
-  struct plane *plane_164X;
-  struct vector3d *color_163X;
-  struct vector3d *vector3d_162X;
-  struct vector3d *normal_161X;
-  struct vector3d *vector3d_160X;
-  struct object **objects_159X;
-  struct object *v_158X;
-  struct object *object_157X;
+}
+long main(long argc_152X, char **argv_153X)
+{
+  struct object *arg2K0;
+  struct vector3d *arg3K0;
+  FILE * merged_arg4K1;
+  struct vector3d *merged_arg3K0;
+
+  int write_vector_return_tag;
+  struct vector3d *vector3d_154X;
+  struct vector3d *color_182X;
+  struct vector3d *dir_181X;
+  struct vector3d *vector3d_180X;
+  struct object *v_179X;
+  struct object *v_178X;
+  struct object *v_177X;
+  struct light *light_176X;
+  struct vector3d *color_175X;
+  struct vector3d *vector3d_174X;
+  struct vector3d *position_173X;
+  struct vector3d *vector3d_172X;
+  struct object *v_171X;
+  struct object *v_170X;
+  struct object *v_169X;
+  struct sphere *sphere_168X;
+  struct vector3d *color_167X;
+  struct vector3d *vector3d_166X;
+  struct vector3d *position_165X;
+  struct vector3d *vector3d_164X;
+  struct object **objects_163X;
+  struct object *v_162X;
+  struct object *object_161X;
+  struct vector3d *v_160X;
+  struct vector3d *vector3d_159X;
+  struct vector3d *v_158X;
+  struct vector3d *vector3d_157X;
   struct vector3d *v_156X;
   struct vector3d *vector3d_155X;
-  struct vector3d *v_154X;
-  struct vector3d *vector3d_153X;
-  struct vector3d *v_152X;
-  struct vector3d *vector3d_151X;
- {  vector3d_151X = (struct vector3d*)malloc(sizeof(struct vector3d));
-  if ((NULL == vector3d_151X)) {
-    arg3K0 = vector3d_151X;
-    goto L1955;}
-  else {
-    vector3d_151X->x = 0.0;
-    vector3d_151X->y = 0.0;
-    vector3d_151X->z = -5.0;
-    arg3K0 = vector3d_151X;
-    goto L1955;}}
- L1955: {
-  v_152X = arg3K0;
-  eye = v_152X;
-  vector3d_153X = (struct vector3d*)malloc(sizeof(struct vector3d));
-  if ((NULL == vector3d_153X)) {
-    arg3K0 = vector3d_153X;
-    goto L1960;}
-  else {
-    vector3d_153X->x = 0.0;
-    vector3d_153X->y = 0.0;
-    vector3d_153X->z = 0.0;
-    arg3K0 = vector3d_153X;
-    goto L1960;}}
- L1960: {
-  v_154X = arg3K0;
-  default_color = v_154X;
-  vector3d_155X = (struct vector3d*)malloc(sizeof(struct vector3d));
+ {  vector3d_155X = (struct vector3d*)malloc(sizeof(struct vector3d));
   if ((NULL == vector3d_155X)) {
     arg3K0 = vector3d_155X;
-    goto L1965;}
+    goto L930;}
   else {
-    vector3d_155X->x = 0.1;
-    vector3d_155X->y = 0.1;
-    vector3d_155X->z = 0.1;
+    vector3d_155X->x = 0.0;
+    vector3d_155X->y = 0.0;
+    vector3d_155X->z = -5.0;
     arg3K0 = vector3d_155X;
-    goto L1965;}}
- L1965: {
+    goto L930;}}
+ L930: {
   v_156X = arg3K0;
-  ambient = v_156X;
-  object_157X = (struct object*)malloc(sizeof(struct object));
-  if ((NULL == object_157X)) {
-    arg4K0 = object_157X;
-    goto L1970;}
+  eye = v_156X;
+  vector3d_157X = (struct vector3d*)malloc(sizeof(struct vector3d));
+  if ((NULL == vector3d_157X)) {
+    arg3K0 = vector3d_157X;
+    goto L935;}
   else {
-    object_157X->type = -1;
-    arg4K0 = object_157X;
-    goto L1970;}}
- L1970: {
-  v_158X = arg4K0;
-  objects_159X = (struct object**)malloc(sizeof(struct object*) * 5);
-  vector3d_160X = (struct vector3d*)malloc(sizeof(struct vector3d));
-  if ((NULL == vector3d_160X)) {
-    arg3K0 = vector3d_160X;
-    goto L1976;}
+    vector3d_157X->x = 0.0;
+    vector3d_157X->y = 0.0;
+    vector3d_157X->z = 0.0;
+    arg3K0 = vector3d_157X;
+    goto L935;}}
+ L935: {
+  v_158X = arg3K0;
+  default_color = v_158X;
+  vector3d_159X = (struct vector3d*)malloc(sizeof(struct vector3d));
+  if ((NULL == vector3d_159X)) {
+    arg3K0 = vector3d_159X;
+    goto L940;}
   else {
-    vector3d_160X->x = 0.25;
-    vector3d_160X->y = -1.0;
-    vector3d_160X->z = 0.0;
-    arg3K0 = vector3d_160X;
-    goto L1976;}}
- L1976: {
-  normal_161X = arg3K0;
-  vector3d_162X = (struct vector3d*)malloc(sizeof(struct vector3d));
-  if ((NULL == vector3d_162X)) {
-    arg3K0 = vector3d_162X;
-    goto L1974;}
+    vector3d_159X->x = 0.1;
+    vector3d_159X->y = 0.1;
+    vector3d_159X->z = 0.1;
+    arg3K0 = vector3d_159X;
+    goto L940;}}
+ L940: {
+  v_160X = arg3K0;
+  ambient = v_160X;
+  object_161X = (struct object*)malloc(sizeof(struct object));
+  if ((NULL == object_161X)) {
+    arg2K0 = object_161X;
+    goto L945;}
   else {
-    vector3d_162X->x = 0.7;
-    vector3d_162X->y = 0.7;
-    vector3d_162X->z = 1.0;
-    arg3K0 = vector3d_162X;
-    goto L1974;}}
- L1974: {
-  color_163X = arg3K0;
-  plane_164X = (struct plane*)malloc(sizeof(struct plane));
-  if ((NULL == plane_164X)) {
-    v_165X = (struct object*)(plane_164X);
-    arg4K0 = v_165X;
-    goto L1978;}
+    object_161X->type = -1;
+    arg2K0 = object_161X;
+    goto L945;}}
+ L945: {
+  v_162X = arg2K0;
+  objects_163X = (struct object**)malloc(sizeof(struct object*) * 2);
+  vector3d_164X = (struct vector3d*)malloc(sizeof(struct vector3d));
+  if ((NULL == vector3d_164X)) {
+    arg3K0 = vector3d_164X;
+    goto L951;}
   else {
-    plane_164X->type = 2;
-    plane_164X->color = color_163X;
-    plane_164X->normal = normal_161X;
-    plane_164X->distance = 10.0;
-    v_166X = (struct object*)(plane_164X);
-    arg4K0 = v_166X;
-    goto L1978;}}
- L1978: {
-  v_167X = arg4K0;
-  *(objects_159X + 0) = v_167X;
-  vector3d_168X = (struct vector3d*)malloc(sizeof(struct vector3d));
-  if ((NULL == vector3d_168X)) {
-    arg3K0 = vector3d_168X;
-    goto L1984;}
+    vector3d_164X->x = 0.0;
+    vector3d_164X->y = 0.0;
+    vector3d_164X->z = 20.0;
+    arg3K0 = vector3d_164X;
+    goto L951;}}
+ L951: {
+  position_165X = arg3K0;
+  vector3d_166X = (struct vector3d*)malloc(sizeof(struct vector3d));
+  if ((NULL == vector3d_166X)) {
+    arg3K0 = vector3d_166X;
+    goto L949;}
   else {
-    vector3d_168X->x = -40.0;
-    vector3d_168X->y = -15.0;
-    vector3d_168X->z = 60.0;
-    arg3K0 = vector3d_168X;
-    goto L1984;}}
- L1984: {
-  position_169X = arg3K0;
-  vector3d_170X = (struct vector3d*)malloc(sizeof(struct vector3d));
-  if ((NULL == vector3d_170X)) {
-    arg3K0 = vector3d_170X;
-    goto L1982;}
+    vector3d_166X->x = 0.7;
+    vector3d_166X->y = 0.7;
+    vector3d_166X->z = 1.0;
+    arg3K0 = vector3d_166X;
+    goto L949;}}
+ L949: {
+  color_167X = arg3K0;
+  sphere_168X = (struct sphere*)malloc(sizeof(struct sphere));
+  if ((NULL == sphere_168X)) {
+    v_169X = (struct object*)(sphere_168X);
+    arg2K0 = v_169X;
+    goto L953;}
   else {
-    vector3d_170X->x = 0.7;
-    vector3d_170X->y = 0.9;
-    vector3d_170X->z = 0.9;
-    arg3K0 = vector3d_170X;
-    goto L1982;}}
- L1982: {
-  color_171X = arg3K0;
-  light_172X = (struct light*)malloc(sizeof(struct light));
-  if ((NULL == light_172X)) {
-    v_173X = (struct object*)(light_172X);
-    arg4K0 = v_173X;
-    goto L1986;}
+    sphere_168X->type = 1;
+    sphere_168X->color = color_167X;
+    sphere_168X->position = position_165X;
+    sphere_168X->radius = 10.0;
+    v_170X = (struct object*)(sphere_168X);
+    arg2K0 = v_170X;
+    goto L953;}}
+ L953: {
+  v_171X = arg2K0;
+  *(objects_163X + 0) = v_171X;
+  vector3d_172X = (struct vector3d*)malloc(sizeof(struct vector3d));
+  if ((NULL == vector3d_172X)) {
+    arg3K0 = vector3d_172X;
+    goto L959;}
   else {
-    light_172X->type = 0;
-    light_172X->color = color_171X;
-    light_172X->position = position_169X;
-    light_172X->radius = 1.0;
-    v_174X = (struct object*)(light_172X);
-    arg4K0 = v_174X;
-    goto L1986;}}
- L1986: {
-  v_175X = arg4K0;
-  *(objects_159X + 1) = v_175X;
-  scene = objects_159X;
-  scene_size = 5;
-  port_176X = ps_open_output_file("image.ppm", &v_177X);
-  ps_write_string("P6\n", port_176X);
-  ps_write_integer(800, port_176X);
-  ps_write_string(" ", port_176X);
-  ps_write_integer(600, port_176X);
-  ps_write_string("\n", port_176X);
-  ps_write_string("255\n", port_176X);
-  vector3d_178X = (struct vector3d*)malloc(sizeof(struct vector3d));
-  if ((NULL == vector3d_178X)) {
-    arg3K0 = vector3d_178X;
-    goto L1838;}
+    vector3d_172X->x = 20.0;
+    vector3d_172X->y = 20.0;
+    vector3d_172X->z = 15.0;
+    arg3K0 = vector3d_172X;
+    goto L959;}}
+ L959: {
+  position_173X = arg3K0;
+  vector3d_174X = (struct vector3d*)malloc(sizeof(struct vector3d));
+  if ((NULL == vector3d_174X)) {
+    arg3K0 = vector3d_174X;
+    goto L957;}
   else {
-    vector3d_178X->x = -4.0;
-    vector3d_178X->y = -3.0;
-    vector3d_178X->z = 0.0;
-    arg3K0 = vector3d_178X;
-    goto L1838;}}
- L1838: {
-  corner_179X = arg3K0;
-  v_180X = (float)(800);
-  v_181X = (float)(600);
-  dx_182X = 8.0 / v_180X;
-  dy_183X = 6.0 / v_181X;
-  arg2K0 = 0;
-  goto L1847;}
- L1847: {
-  n_184X = arg2K0;
-  if ((n_184X < 480000)) {
-    v_185X = (float)((n_184X / 600));
-    v_186X = (float)((n_184X % 800));
-    vector3d_187X = (struct vector3d*)malloc(sizeof(struct vector3d));
-    if ((NULL == vector3d_187X)) {
-      arg3K0 = vector3d_187X;
-      goto L1854;}
-    else {
-      vector3d_187X->x = (v_186X * dx_182X);
-      vector3d_187X->y = (v_185X * dy_183X);
-      vector3d_187X->z = 0.0;
-      arg3K0 = vector3d_187X;
-      goto L1854;}}
+    vector3d_174X->x = 0.7;
+    vector3d_174X->y = 0.9;
+    vector3d_174X->z = 0.9;
+    arg3K0 = vector3d_174X;
+    goto L957;}}
+ L957: {
+  color_175X = arg3K0;
+  light_176X = (struct light*)malloc(sizeof(struct light));
+  if ((NULL == light_176X)) {
+    v_177X = (struct object*)(light_176X);
+    arg2K0 = v_177X;
+    goto L961;}
   else {
-    return 0;}}
- L1854: {
-  point_188X = arg3K0;
-  v1_189X = vector3d_op(corner_179X, point_188X, HflA12);
-  v1_190X = vector3d_op(v1_189X, (eye), Hfl_21);
-  v_191X = vector3d_dot(v1_190X, v1_190X);sqrt(v_191X);
-  view_192X = vector3d_scalar_mul(v1_190X, 1.0);
-  color_193X = shoot_ray((eye), view_192X, 0);
-  merged_arg0K0 = (color_193X->x);
-  wD1_return_tag = 0;
-  goto wD1;
- wD1_return_0:
-  merged_arg0K0 = (color_193X->y);
-  wD1_return_tag = 1;
-  goto wD1;
- wD1_return_1:
-  merged_arg0K0 = (color_193X->z);
-  wD1_return_tag = 2;
-  goto wD1;
- wD1_return_2:
-  arg2K0 = (1 + n_184X);
-  goto L1847;}
- wD1: {
-  c_150X = merged_arg0K0;{
-  v_194X = (unsigned char)(c_150X);
-  wD10_return_value = (ps_write_integer(v_194X, port_176X));
-  goto wD1_return;}
- wD1_return:
-  switch (wD1_return_tag) {
-  case 0: goto wD1_return_0;
-  case 1: goto wD1_return_1;
-  default: goto wD1_return_2;
+    light_176X->type = 0;
+    light_176X->color = color_175X;
+    light_176X->position = position_173X;
+    light_176X->radius = 1.0;
+    v_178X = (struct object*)(light_176X);
+    arg2K0 = v_178X;
+    goto L961;}}
+ L961: {
+  v_179X = arg2K0;
+  *(objects_163X + 1) = v_179X;
+  scene = objects_163X;
+  scene_size = 2;
+  vector3d_180X = (struct vector3d*)malloc(sizeof(struct vector3d));
+  if ((NULL == vector3d_180X)) {
+    arg3K0 = vector3d_180X;
+    goto L2233;}
+  else {
+    vector3d_180X->x = 0.0;
+    vector3d_180X->y = 0.0;
+    vector3d_180X->z = 1.0;
+    arg3K0 = vector3d_180X;
+    goto L2233;}}
+ L2233: {
+  dir_181X = arg3K0;
+  ps_write_string("Eye: ", (stdout));
+  merged_arg3K0 = (eye);
+  merged_arg4K1 = (stdout);
+  write_vector_return_tag = 0;
+  goto write_vector;
+ write_vector_return_0:
+  { long ignoreXX;
+  PS_WRITE_CHAR(10, (stdout), ignoreXX) }
+  ps_write_string("Shooting ray:\n    origin: [", (stdout));
+  merged_arg3K0 = (eye);
+  merged_arg4K1 = (stdout);
+  write_vector_return_tag = 1;
+  goto write_vector;
+ write_vector_return_1:
+  ps_write_string("]\n", (stdout));
+  ps_write_string("    dir:    [", (stdout));
+  merged_arg3K0 = dir_181X;
+  merged_arg4K1 = (stdout);
+  write_vector_return_tag = 2;
+  goto write_vector;
+ write_vector_return_2:
+  ps_write_string("]\n", (stdout));
+  color_182X = shoot_ray((eye), dir_181X, 0);
+  merged_arg3K0 = color_182X;
+  merged_arg4K1 = (stdout);
+  write_vector_return_tag = 3;
+  goto write_vector;
+ write_vector_return_3:
+  return 0;}
+ write_vector: {
+  vector3d_154X = merged_arg3K0;{wD0((vector3d_154X->x));
+  ps_write_string(" ", (stdout));wD0((vector3d_154X->y));
+  ps_write_string(" ", (stdout));
+  wD0((vector3d_154X->z));
+  goto write_vector_return;}
+ write_vector_return:
+  switch (write_vector_return_tag) {
+  case 0: goto write_vector_return_0;
+  case 1: goto write_vector_return_1;
+  case 2: goto write_vector_return_2;
+  default: goto write_vector_return_3;
   }}
 
 }void
@@ -907,7 +1029,4 @@ eye = NULL;
 default_color = NULL;
 scene = NULL;
 scene_size = 0;
-acc = NULL;
-fcp_obj = NULL;
-fcp_depth = 10000.0;
 }

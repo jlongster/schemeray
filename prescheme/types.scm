@@ -52,8 +52,14 @@
            (= (object-type o) ,id))
 
          (define ,untypifier
-           (external "(struct object*)" (=> (,name) object)))
+           (external "(struct object*)"
+                     (=> (,name) object)
+                     (lambda (o)
+                       (,(r 'change-record-type) o :object))))
 
          (define ,typifier
-           (external "(struct light*)" (=> (object) ,name)))))))
+           (external "(struct light*)"
+                     (=> (object) ,name)
+                     (lambda (o)
+                       (,(r 'change-record-type) o ,type-desc))))))))
 

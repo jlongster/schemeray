@@ -1,18 +1,75 @@
 
+(define (identity x) x)
+
 (define flsqrt
-  (external "sqrt" (=> (float) float)))
+  (external "sqrt"
+            (=> (float) float)
+            sqrt))
 
 (define flpow
-  (external "pow" (=> (float float) float)))
+  (external "pow"
+            (=> (float float) float)
+            expt))
 
 (define integer->float
-  (external "(float)" (=> (integer) float)))
+  (external "(float)"
+            (=> (integer) float)
+            identity))
 
 (define float->integer
-  (external "(int)" (=> (float) integer)))
+  (external "(int)"
+            (=> (float) integer)
+            round))
 
 (define float->byte
-  (external "(unsigned char)" (=> (float) integer)))
+  (external "(unsigned char)"
+            (=> (float) integer)
+            (lambda (n)
+              (min (max 0 n) 255))))
+
+(define (print-integer n)
+  (write-integer n (current-output-port)))
+
+(define (print-string str)
+  (write-string str (current-output-port)))
+
+(define write-float
+  (external "write_real"
+            (=> (float) unit)
+            display))
+
+(define (print-float f)
+  (write-float f))
+
+(define (write-vector v port)
+  (let ((w (lambda (c)
+             (write-float c))))
+    (w (vector3d-x v))
+    (print-string " ")
+    (w (vector3d-y v))
+    (print-string " ")
+    (w (vector3d-z v))))
+
+(define (print-vector v)
+  (write-vector v (current-output-port)))
+
+(define (print-newline)
+  (newline (current-output-port)))
+
+(define (write-color color port)
+  (let ((w (lambda (c)
+             (write-integer (float->byte c) port))))
+    (w (vector3d-x color))
+    (w (vector3d-y color))
+    (w (vector3d-z color))))
+
+(define unspecific-value
+  (external ""
+            unit
+            (lambda () (if #f #f))))
+
+(define (unspecific)
+  unspecific-value)
 
 (define-syntax define-entry-point
   (syntax-rules ()
@@ -30,6 +87,7 @@
      (begin (write-string string port)
             (write-strings port next ...)))))
 
+;; unused - buggy
 (define-syntax vector-iterate
   (lambda (f r c)
     (let ((vector (cadr f))
@@ -57,7 +115,9 @@
   (z float vector3d-z))
 
 (define null-vector3d
-  (external "NULL" vector3d))
+  (external "NULL"
+            vector3d
+            #f))
 
 (define (vector3d-op v1 v2 op)
   (make-vector3d (op (vector3d-x v1) (vector3d-x v2))
@@ -135,11 +195,21 @@
 (define (make-object)
   (really-make-object -1))
 
+(define null-object?
+  (external "ISNULL"
+            (=> (object) boolean)
+            (lambda (v)
+              (not v))))
+
 (define null-object
-  (external "NULL" object))
+  (external "NULL"
+            object
+            #f))
 
 (define null-scene
-  (external "NULL" (^ object)))
+  (external "NULL"
+            (^ object)
+            #f))
 
 (define-object light :light
   color
@@ -164,23 +234,6 @@
 
 (define-object mesh :mesh
   (triangles (^ triangle)))
-
-
-
-;; Config
-(define VIEWPORT-X 8.0)
-(define VIEWPORT-Y 6.0)
-(define WINDOW-X 800)
-(define WINDOW-Y 600)
-(define DEPTH 10000.0)
-(define AMBIENT null-vector3d)
-(define EYE null-vector3d)
-(define DEFAULT-COLOR null-vector3d)
-(define NUM-STEPS 3)
-
-(define SCENE null-scene)
-(define SCENE-SIZE 0)
-
 
 ;; Normals
 (define (object-normal object point)
@@ -290,68 +343,75 @@
 (define (apply-lighting hit point view)
   (if (light? hit)
       (object-color hit)
-      (begin
-        (vector-iterate SCENE SCENE-SIZE obj
-          (if (light? obj)
-              (let* ((light (object->light obj))
-                     (point-to-light (vector3d-sub (light-position light) point))
-                     (l (vector3d-unit point-to-light))
-                     (n (object-normal hit point))
-                     (n.l (saturate (vector3d-dot n l)))
-                     (r (vector3d-sub l (vector3d-scalar-mul
-                                         n
-                                         (fl* 2.0 (vector3d-dot n l)))))
-                     (r.v (saturate (vector3d-dot r view)))
-                     (diff n.l)
-                     (spec (flpow r.v 30.0))
-                     (shadow (saturate (fl* 4.0 diff))))
-                (if (fl> diff 0.0)
-                    (set! acc
-                          (vector3d-add
-                           acc
-                           (vector3d-component-mul
-                            (object-color obj)
-                            (vector3d-scalar-mul
-                             (vector3d-add (vector3d-scalar-mul (object-color hit) diff)
-                                           (cond
-                                            ((plane? hit) (make-vector3d 0.0 0.0 0.0))
-                                            (else (make-vector3d spec spec spec))))
-                             shadow))))))))
+      (let ((color
+             (let loop ((i 0)
+                        (acc (make-vector3d 0.0 0.0 0.0)))
+               (if (< i SCENE-SIZE)
+                   (let ((obj (vector-ref SCENE i)))
+                     (if (light? obj)
+                         (let* ((light (object->light obj))
+                                (point-to-light (vector3d-sub (light-position light) point))
+                                (l (vector3d-unit point-to-light))
+                                (n (object-normal hit point))
+                                (n.l (saturate (vector3d-dot n l)))
+                                (r (vector3d-sub l (vector3d-scalar-mul
+                                                    n
+                                                    (fl* 2.0 (vector3d-dot n l)))))
+                                (r.v (saturate (vector3d-dot r view)))
+                                (diff n.l)
+                                (spec (flpow r.v 30.0))
+                                (shadow (saturate (fl* 4.0 diff))))
+                           (if (fl> diff 0.0)
+                               (loop (+ i 1)
+                                     (vector3d-add
+                                      acc
+                                      (vector3d-component-mul
+                                       (object-color obj)
+                                       (vector3d-scalar-mul
+                                        (vector3d-add (vector3d-scalar-mul (object-color hit) diff)
+                                                      (cond
+                                                       ((plane? hit) (make-vector3d 0.0 0.0 0.0))
+                                                       (else (make-vector3d spec spec spec))))
+                                        shadow))))
+                               (loop (+ i 1) acc)))
+                         (loop (+ i 1) acc)))
+                   acc))))
         (cond
-         ((plane? hit) acc)
-         (else (vector3d-add AMBIENT acc))))))
+         ((plane? hit) color)
+         (else (vector3d-add AMBIENT color))))))
 
-(define fcp-obj null-object)
-(define fcp-depth DEPTH)
 (define (find-closest-prim orig dir prims num-prims)
-  (set! fcp-obj null-object)
-  (set! fcp-depth DEPTH)
-  (vector-iterate prims num-prims o
-    (let ((d (object-intersection o orig dir)))
-      (if (fl< d depth)
-          (begin
-            (set! fcp-obj o)
-            (set! fcp-depth d)))))
-  (values fcp-obj fcp-depth))
+  (let loop ((i 0)
+             (closest-object null-object)
+             (closest-depth DEPTH))
+    (if (< i num-prims)
+        (let ((obj (vector-ref prims i)))
+          (let ((d (object-intersection obj orig dir)))
+            (if (fl< d closest-depth)
+                (loop (+ i 1) obj d)
+                (loop (+ i 1) closest-object closest-depth))))
+        (values closest-object closest-depth))))
 
 (define (shoot-ray orig dir step)
   (if (< step NUM-STEPS)
       (receive (obj obj-depth) (find-closest-prim orig dir SCENE SCENE-SIZE)
-        (let* ((point (vector3d-add orig (vector3d-scalar-mul dir obj-depth)))
-               (n (object-normal obj point))
-               (r (vector3d-unit
-                   (vector3d-sub
-                    dir
-                    (vector3d-scalar-mul n (fl* 2.0
-                                                (vector3d-dot dir n))))))
-               (view (vector3d-unit (vector3d-sub point EYE))))
-          (vector3d-add
-           (apply-lighting obj point view)
-           (vector3d-scalar-mul
-            (shoot-ray (vector3d-add point (vector3d-scalar-mul r .0001))
-                       r
-                       (+ step 1))
-            (fl/ 1.0 (fl* (integer->float (+ step 1)) 2.0))))))
+        (if (null-object? obj)
+            (make-vector3d 0.0 0.0 0.0)
+            (let* ((point (vector3d-add orig (vector3d-scalar-mul dir obj-depth)))
+                   (n (object-normal obj point))
+                   (r (vector3d-unit
+                       (vector3d-sub
+                        dir
+                        (vector3d-scalar-mul n (fl* 2.0
+                                                    (vector3d-dot dir n))))))
+                   (view (vector3d-unit (vector3d-sub point EYE))))
+              (vector3d-add
+               (apply-lighting obj point view)
+               (vector3d-scalar-mul
+                (shoot-ray (vector3d-add point (vector3d-scalar-mul r .0001))
+                           r
+                           (+ step 1))
+                (fl/ 1.0 (fl* (integer->float (+ step 1)) 2.0)))))))
       (make-vector3d 0.0 0.0 0.0)))
 
 (define (trace-scene port)
@@ -370,36 +430,63 @@
                         (vector3d-sub (vector3d-add corner point) EYE)))
                  (color (shoot-ray EYE view 0)))
             (write-color color port)
-            (loop (+ n 1)))))))
+            (loop (+ n 1))))))
+  (unspecific))
 
-(define (write-color color port)
-  (let ((w (lambda (c)
-             (write-integer (float->byte c) port))))
-    (w (vector3d-x color))
-    (w (vector3d-y color))
-    (w (vector3d-z color))))
+(define (debug-trace-scene)
+  (let ((dir (make-vector3d 0.0 0.0 1.0)))
+    ;; Eye
+    (print-string "Eye: ") (print-vector EYE) (print-newline)
 
-(define-entry-point (main)
+    ;; Ray info
+    (print-string "Shooting ray:\n    origin: [") (print-vector EYE) (print-string "]\n")
+    (print-string "    dir:    [") (print-vector dir) (print-string "]\n")
+        
+    (let ((color (shoot-ray EYE dir 0)))
+      (print-vector color))
+    (unspecific)))
+
+;; Config
+(define VIEWPORT-X 8.0)
+(define VIEWPORT-Y 6.0)
+(define WINDOW-X 800)
+(define WINDOW-Y 600)
+(define DEPTH 10000.0)
+(define AMBIENT null-vector3d)
+(define EYE null-vector3d)
+(define DEFAULT-COLOR null-vector3d)
+(define NUM-STEPS 3)
+
+(define SCENE null-scene)
+(define SCENE-SIZE 0)
+
+(define DEBUG #t)
+
+(define (configure)
   (set! EYE (make-vector3d 0.0 0.0 -5.0))
   (set! DEFAULT-COLOR (make-vector3d 0.0 0.0 0.0))
   (set! AMBIENT (make-vector3d 0.1 0.1 0.1))
 
-  (let ((objects (make-vector 5 (make-object))))
-    (vector-set! objects 0 (make-plane (make-vector3d .7 .7 1.0)
-                                       (make-vector3d .25 -1.0 0.0)
-                                       10.0))
+  (let ((objects (make-vector 2 (make-object))))
+    (vector-set! objects 0 (make-sphere (make-vector3d .7 .7 1.0)
+                                        (make-vector3d 0.0 0.0 20.0)
+                                        10.0))
     (vector-set! objects 1 (make-light (make-vector3d .7 .9 .9)
-                                       (make-vector3d -40.0 -15.0 60.0)
+                                       (make-vector3d 20.0 20.0 15.0)
                                        1.0))
     (set! SCENE objects)
-    (set! SCENE-SIZE 5))
-  
-  (receive (port status) (open-output-file "image.ppm")
-    (write-string "P6\n" port)
-    (write-integer WINDOW-X port)
-    (write-string " " port)
-    (write-integer WINDOW-Y port)
-    (write-strings port "\n" "255\n")
-    (trace-scene port))
+    (set! SCENE-SIZE 2)))
 
+(define-entry-point (main)
+  (configure)
+
+  (if DEBUG
+      (debug-trace-scene)
+      (receive (port status) (open-output-file "image.ppm")
+        (write-string "P6\n" port)
+        (write-integer WINDOW-X port)
+        (write-string " " port)
+        (write-integer WINDOW-Y port)
+        (write-strings port "\n" "255\n")
+        (trace-scene port)))
   0)
