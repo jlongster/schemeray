@@ -1,0 +1,5 @@
+;; do this: ,exec ,load load.s48
+
+(config '(load "s48-packages.scm"))
+(config '(load "packages.scm"))
+(user '(in schemeray))

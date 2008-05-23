@@ -1,0 +1,3 @@
+#! /bin/sh
+
+cat front/compile.batch | scheme48 -i front/ps-compiler.image -a batch

@@ -1,0 +1,12 @@
+;; do this: ,exec ,load compile.s48
+
+(config '(load "scm-packages.scm"))
+
+(user '(run (prescheme-compiler
+             'schemeray
+             '("pscm-packages.scm" "packages.scm")
+             'prescheme-init
+             "schemeray.c"
+	     '(header "#include <math.h>")
+	     '(header "#include \"c-util.h\""))))
+
