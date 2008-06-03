@@ -1,4 +1,16 @@
 
+(define-syntax define-entry-point
+  (syntax-rules (init:)
+    ((_ (name) (init: init-expr) expr ...)
+     (begin
+       (define (name argc argv)
+         expr ...)
+       init-expr))
+    ((_ (name) expr ...)
+     (define-entry-point (name)
+       (init: (lambda () #t))
+       expr ...))))
+
 (define (maybe->string thing)
   (if (symbol? thing)
       (symbol->string thing)

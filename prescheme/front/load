@@ -1,0 +1,4 @@
+#! /bin/sh
+
+make front/schemeray.image
+scheme48 -i front/schemeray.image

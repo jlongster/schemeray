@@ -4,9 +4,10 @@
 
 (user '(run (prescheme-compiler
              'schemeray
-             '("pscm-packages.scm" "packages.scm")
+             '("ps-packages.scm" "packages.scm")
              'prescheme-init
              "schemeray.c"
+	     '(header "#include <stdlib.h>")
 	     '(header "#include <math.h>")
 	     '(header "#include \"c-util.h\""))))
 

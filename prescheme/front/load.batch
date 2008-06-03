@@ -1,0 +1,4 @@
+;; do this: ,exec ,load load.batch
+
+,exec ,load front/load.s48
+,in schemeray

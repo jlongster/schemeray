@@ -1,17 +1,22 @@
 
-(define-structure types (export (define-field :syntax)
-                                (define-object :syntax))
+(define-structure runtime-types (export (define-field :syntax)
+                                        (define-object :syntax))
   (open prescheme
         ps-record-types
         scm-util)
-  (for-syntax (open scheme tables scm-types scm-util))
-  (files types))
+  (for-syntax (open scheme
+                    tables
+                    runtime-types-support
+                    scm-util))
+  (files runtime-types))
 
 (define-structure schemeray (export main)
   (open prescheme
+        maybe-scheme
         ps-record-types
         ps-receive
         ps-flonums
-        types        
-        scm-scheme)
+        util
+        runtime-types
+        debug)
   (files schemeray))
