@@ -1,0 +1,8 @@
+
+(user '(run (prescheme-compiler
+             'test
+             '("ps-packages.scm" "test-packages.scm")
+             'test-init
+             "test.c"
+	     '(header "#include \"c-util.h\""))))
+
