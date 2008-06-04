@@ -10,7 +10,7 @@ front/schemeray.image: *.scm
 image: schemeray
 	./schemeray
 	pnmtopng image.ppm > image.png
-	# rm image.ppm
+	rm image.ppm
 
 png: image.ppm
 	pnmtopng image.ppm > image.png

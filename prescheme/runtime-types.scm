@@ -61,7 +61,7 @@
                        (,(r 'change-record-type) o :object))))
 
          (define ,typifier
-           (external "(struct light*)"
+           (external ,(string-append "(struct " (symbol->string name) "*)")
                      (=> (object) ,name)
                      (lambda (o)
                        (,(r 'change-record-type) o ,type-desc))))))))
