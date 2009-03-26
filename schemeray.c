@@ -1,7 +1,7 @@
 #ifdef ___LINKER_INFO
-; File: "schemeray.c", produced by Gambit-C v4.2.6
+; File: "schemeray.c", produced by Gambit-C v4.3.2
 (
-402006
+403002
 " schemeray"
 (" schemeray")
 (
@@ -149,7 +149,7 @@
  #f
 )
 #else
-#define ___VERSION 402006
+#define ___VERSION 403002
 #define ___MODULE_NAME " schemeray"
 #define ___LINKER_ID ____20_schemeray
 #define ___MH_PROC ___H__20_schemeray

@@ -1,6 +1,11 @@
 
 (define (identity x) x)
 
+(define (test n)
+  (if (< n 1000)
+      (test (+ n 1))
+      n))
+
 (define flsqrt
   (external "sqrt"
             (=> (float) float)
@@ -517,6 +522,8 @@
     (set! SCENE-SIZE count)))
 
 (define-entry-point (main) (init: (configure))
+  (print-integer (test 0))
+  (print-string "test")
   (if DEBUG
       (debug-trace-scene)
       (receive (port status) (open-output-file "image.ppm")

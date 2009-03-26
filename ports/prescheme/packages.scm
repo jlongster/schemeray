@@ -10,7 +10,7 @@
                     scm-util))
   (files runtime-types))
 
-(define-structure schemeray (export main)
+(define-structure schemeray (export main test)
   (open prescheme
         maybe-scheme
         ps-record-types
